@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Sydney Train Network Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <aside id="panel">
+      <header>
+        <p class="eyebrow">Greater Sydney</p>
+        <h1>Train, metro, ferry &amp; light rail</h1>
+        <p class="lede">
+          Stations and routes over local government area boundaries. Line colours follow Transport for NSW.
+        </p>
+      </header>
+
+      <label class="search">
+        <span>Find a station or LGA</span>
+        <input id="search" type="search" placeholder="e.g. Parramatta, Inner West" autocomplete="off" />
+        <ul id="results" hidden></ul>
+      </label>
+
+      <section>
+        <h2>Map style</h2>
+        <label class="field">
+          <span class="sr-only">Basemap</span>
+          <select id="basemap"></select>
+        </label>
+      </section>
+
+      <section>
+        <h2>Layers</h2>
+        <div id="layers" class="toggles"></div>
+      </section>
+
+      <section class="save-block">
+        <h2>Save or send</h2>
+        <div class="button-row">
+          <button id="download" type="button">Save PNG</button>
+          <button id="share" type="button">Share</button>
+        </div>
+        <p class="hint">
+          PNG opens on phones, computers, and chat apps. Share can send it to Photos, Files, Messages, or AirDrop.
+        </p>
+        <div id="phone-access" class="phone-access" hidden>
+          <p>This link works on any network. Open it on your phone or scan the QR code:</p>
+          <a id="phone-url" href="#"></a>
+          <img id="phone-qr" alt="QR code for this map" hidden />
+        </div>
+      </section>
+
+      <section>
+        <h2>Lines</h2>
+        <div id="legend" class="legend"></div>
+      </section>
+
+      <section class="stats" id="stats"></section>
+
+      <footer>
+        Routes &amp; stops: OpenStreetMap contributors. LGA borders: ABS ASGS 2025
+        (statistical approximation). Colours: TfNSW brand palette.
+      </footer>
+    </aside>
+
+    <main id="map" role="application" aria-label="Sydney public transport map"></main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
