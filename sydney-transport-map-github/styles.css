@@ -224,6 +224,28 @@ h2 {
   accent-color: var(--accent);
 }
 
+.sliders {
+  display: grid;
+  gap: 12px;
+}
+
+.slider {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.slider header {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+}
+
+.slider input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
 .swatch {
   width: 14px;
   height: 14px;

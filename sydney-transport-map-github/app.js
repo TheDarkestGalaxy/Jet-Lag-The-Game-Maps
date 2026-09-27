@@ -152,15 +152,23 @@ function lgaForPoint(lon, lat) {
   return null;
 }
 
+const OPACITY = {
+  routes: 1,
+  stations: 1,
+  lgaFill: 1,
+  lgaBorder: 0.85,
+};
+
 function routeStyle(feature) {
   const ref = feature.properties.ref;
   return {
     color: lineColor(ref, feature.properties.mode),
-    weight: feature.properties.mode === "ferry" ? 2.2 : 3.2,
-    opacity: 0.92,
+    weight: feature.properties.mode === "ferry" ? 2.4 : 3.6,
+    opacity: 1,
     pane: "routePane",
     lineCap: "round",
     lineJoin: "round",
+    smoothFactor: 0,
   };
 }
 
@@ -244,7 +252,7 @@ function lgaBorderStyle() {
   const dark = currentTheme() === "dark";
   return {
     color: dark ? "#e8edf3" : "#3f4a57",
-    weight: 1.25,
+    weight: 1,
     opacity: 1,
     fill: false,
     lineCap: "butt",
@@ -296,6 +304,47 @@ function addLgas(geojson, borders) {
   }).addTo(layers.lga);
 
   lgaBorderLayer = L.geoJSON(borders, { style: lgaBorderStyle }).addTo(layers.lga);
+}
+
+function applyOpacity() {
+  map.getPane("routePane").style.opacity = String(OPACITY.routes);
+  map.getPane("stationPane").style.opacity = String(OPACITY.stations);
+  map.getPane("lgaPane").style.opacity = String(OPACITY.lgaFill);
+  map.getPane("lgaBorderPane").style.opacity = String(OPACITY.lgaBorder);
+  localStorage.setItem("sydney-map-opacity", JSON.stringify(OPACITY));
+}
+
+function setupOpacity() {
+  const saved = localStorage.getItem("sydney-map-opacity");
+  if (saved) {
+    try {
+      Object.assign(OPACITY, JSON.parse(saved));
+    } catch {
+      /* keep defaults */
+    }
+  }
+  const root = document.getElementById("opacity");
+  const items = [
+    ["routes", "Routes"],
+    ["stations", "Stations"],
+    ["lgaFill", "LGA fills"],
+    ["lgaBorder", "LGA borders"],
+  ];
+  items.forEach(([key, label]) => {
+    const wrap = document.createElement("label");
+    wrap.className = "slider";
+    wrap.innerHTML = `<header><span>${label}</span><span data-val="${key}">${Math.round(OPACITY[key] * 100)}%</span></header><input type="range" min="0" max="100" value="${Math.round(OPACITY[key] * 100)}" data-opacity="${key}" />`;
+    root.appendChild(wrap);
+  });
+  root.addEventListener("input", (event) => {
+    const key = event.target.dataset.opacity;
+    if (!key) return;
+    OPACITY[key] = Number(event.target.value) / 100;
+    const readout = root.querySelector(`[data-val="${key}"]`);
+    if (readout) readout.textContent = `${event.target.value}%`;
+    applyOpacity();
+  });
+  applyOpacity();
 }
 
 function renderToggles() {
@@ -594,6 +643,7 @@ async function setupPhoneAccess() {
   const box = document.getElementById("phone-access");
   const link = document.getElementById("phone-url");
   const qr = document.getElementById("phone-qr");
+  if (!box || !link || !qr) return;
   const here = window.location.href.split("#")[0];
   const publicHost = !/^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname);
   let phoneUrl = here;
@@ -661,18 +711,30 @@ async function load() {
   renderLegend();
   setupSearch();
   setupBasemap();
+  setupOpacity();
   setupDownload();
   setupPhoneAccess();
 
-  const [lgas, borders, trains, metro, lightRail, ferries, stations] = await Promise.all([
-    fetch("data/lgas.geojson").then((r) => r.json()),
-    fetch("data/lga_borders.geojson").then((r) => r.json()),
-    fetch("data/trains.geojson").then((r) => r.json()),
-    fetch("data/metro.geojson").then((r) => r.json()),
-    fetch("data/light_rail.geojson").then((r) => r.json()),
-    fetch("data/ferries.geojson").then((r) => r.json()),
-    fetch("data/stations.geojson").then((r) => r.json()),
-  ]);
+  const bundled = window.MAP_DATA;
+  const [lgas, borders, trains, metro, lightRail, ferries, stations] = bundled
+    ? [
+        bundled.lgas,
+        bundled.borders,
+        bundled.trains,
+        bundled.metro,
+        bundled.lightRail,
+        bundled.ferries,
+        bundled.stations,
+      ]
+    : await Promise.all([
+        fetch("data/lgas.geojson").then((r) => r.json()),
+        fetch("data/lga_borders.geojson").then((r) => r.json()),
+        fetch("data/trains.geojson").then((r) => r.json()),
+        fetch("data/metro.geojson").then((r) => r.json()),
+        fetch("data/light_rail.geojson").then((r) => r.json()),
+        fetch("data/ferries.geojson").then((r) => r.json()),
+        fetch("data/stations.geojson").then((r) => r.json()),
+      ]);
 
   addLgas(lgas, borders);
   applyLgaTheme();
